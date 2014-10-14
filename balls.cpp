@@ -104,8 +104,6 @@ void display()
         }
     }
 
-    std::cout << "steps" << max_steps << std::endl;
-
     max_steps -= 1;
     if (max_steps == 0) {
         exit(0);
@@ -116,9 +114,15 @@ void display()
 
 int main(int argc, char **argv)
 {
-    int count = atoi(argv[1]);
 
-    max_steps = atoi(argv[2]);
+    int count = 100;
+
+    if (argc > 1) count = atoi(argv[1]);
+
+    max_steps = -1;
+    if (argc > 2) max_steps = atoi(argv[2]);
+
+
     balls = new std::vector<Ball>(count);
     /* make a grid that can hold O(1) balls per bin */
     grid = new Grid<Ball *>(-1, -1, 1, 1,

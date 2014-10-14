@@ -8,7 +8,7 @@ EXEC += balls
 EXEC += words
 
 # Define the C++ compiler to use
-CXX := $(shell which clang++-3.5) -std=c++11
+CXX := $(shell which clang++) -std=c++11
 
 # Define any directories containing header files
 #   To include directories use -Ipath/to/files
