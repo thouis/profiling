@@ -46,8 +46,6 @@ $(EXEC): % : %.o
 %.o: %.cpp
 	$(CXX) $(CXXFLAGS) $(INCLUDES) $(DEPSFLAGS) -c -o $@ $<
 
-# Extra dependencies for executables
-#   Nothing here
 
 # 'make clean' - deletes all .o files, exec, and dependency files
 clean:

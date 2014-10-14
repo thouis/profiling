@@ -9,6 +9,7 @@
 
 // Global variable to work around glut's display callback not taking arguments
 std::vector<Ball> *balls;
+Grid<Ball *> *grid;
 int max_steps = -1;
 
 
@@ -42,7 +43,6 @@ void reshape(int w, int h)
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
     glOrtho(-1, 1, -1, 1, 0, 20);
-    //glFrustum(-0.1, 0.1, -float(h)/(10.0*float(w)), float(h)/(10.0*float(w)), 0.5, 1000.0);
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
 }
@@ -70,16 +70,34 @@ void display()
     {
         Timer timer("step");
         for (auto b1 = balls->begin(); b1 < balls->end(); ++b1) {
-            for (auto b2 = b1; b2 < balls->end(); ++b2) {
-                if ((b1 != b2) && (b1->near(*b2)))
-                    b1->collide(*b2);
+            auto it = grid->near_begin(b1->center()[0], b1->center()[1],
+                                       2 * b1->radius(), 2 * b1->radius());
+            auto end = grid->near_end(b1->center()[0], b1->center()[1],
+                                      2 * b1->radius(), 2 * b1->radius());
+            while (it != end) {
+                auto& _b1 = (*b1);
+                auto& _b2 = *(*it);
+                if ((&_b1 != &_b2) && (b1->near(_b2))) {
+                    _b1.collide(_b2);
+                }
+                ++it;
             }
         }
 
         for (auto b1 = balls->begin(); b1 < balls->end(); ++b1) {
             b1->collide_walls();
-            b1->step(0.01);
         }
+
+        for (auto b1 = balls->begin(); b1 < balls->end(); ++b1) {
+            grid->remove(b1->center()[0],
+                         b1->center()[1],
+                         &(*b1));
+            b1->step(0.01);
+            grid->add(b1->center()[0],
+                      b1->center()[1],
+                      &(*b1));
+        }
+
 
         for (auto b = balls->begin(); b < balls->end(); ++b) {
             draw_circle(b->center(), b->radius(), &(b->color()));
@@ -102,6 +120,14 @@ int main(int argc, char **argv)
 
     max_steps = atoi(argv[2]);
     balls = new std::vector<Ball>(count);
+    /* make a grid that can hold O(1) balls per bin */
+    grid = new Grid<Ball *>(-1, -1, 1, 1,
+                            2 * (*balls)[0].radius(), 2 * (*balls)[0].radius());
+    /* add the balls into the grid */
+    for (std::size_t i = 0; i < balls->size(); i++)
+        grid->add((*balls)[i].center()[0],
+                  (*balls)[i].center()[1],
+                  &(*balls)[i]);
 
     glutInit(&argc, argv);
     glutInitDisplayMode(GLUT_DOUBLE | GLUT_DEPTH | GLUT_RGBA);
